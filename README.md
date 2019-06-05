@@ -6,4 +6,4 @@ Files:
 
 SDWriter - QT executable for writing files to SD card in simple DHFS format.
 
-dh_sound_decoder.ino - basic sketch for Blue Pill
+dh_sound_decoder - sketch for Blue Pill
