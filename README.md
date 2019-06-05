@@ -1,6 +1,6 @@
 # DHSD 
 
-Prototype of DCC sound decoder based on stm32 Blue Pill (Arduino), VS1053b, and SD memory card for model reailroads.
+Prototype of DCC sound decoder based on stm32 Blue Pill (Arduino), VS1053b, and SD memory card for model railroads.
 
 Files:
 
