@@ -21,6 +21,8 @@
 #define DHSD_VS1053_GPIO_DDR 0xC017
 #define DHSD_VS1053_GPIO_IDATA 0xC018
 #define DHSD_VS1053_GPIO_ODATA 0xC019
+#define DHSD_VS1053_REG_WRAM 0x06
+#define DHSD_VS1053_REG_WRAMADDR 0x07
 
 #define DHSD_VS1053_INT_ENABLE  0xC01A
 
@@ -42,11 +44,18 @@
 #define DHSD_VS1053_SCI_AICTRL1 0x0D
 #define DHSD_VS1053_SCI_AICTRL2 0x0E
 
+//#define debug
 
 class DHSD_VS1053{
 
   public:
-    bool Init(DHSD_SPI * InCSPI, int InXRST);
+    DHSD_VS1053();
+    bool Init(DHSD_SPI * InCSPI, int InXRST, int InDREQ);
+
+    bool StartPlayer();
+    bool FeedData(unsigned char * InSoundData, unsigned long TailBytes);
+    bool ReadyForFeed();
+    void SineTest();
 
   private:
     unsigned char Reset();
@@ -59,12 +68,17 @@ class DHSD_VS1053{
     void DataWrite(unsigned char * InData, unsigned int InLength);
 
     void SetVolume(char InVolume);
+
+    bool CheckVSReadyToEat();
     
     DHSD_SPI XSPI;
    
-    void SineTest();
-
+  
     int XRST;
+
+    bool ReadyForData;
+
+    int DREQ;
 
 };
 

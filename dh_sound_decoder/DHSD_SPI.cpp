@@ -20,8 +20,8 @@ bool DHSD_SPI::Init(int InCS, int InDCS){//, SPISettings InSPISettings){
   CS=InCS;
   DCS=InDCS;
   //Settings=InSPISettings;
-  Serial.print("CS=");
-  Serial.println(CS);
+ /* Serial.print("CS=");
+  Serial.println(CS);*/
   pinMode(CS,OUTPUT);
   pinMode(DCS,OUTPUT);
   SPI.begin();
@@ -37,14 +37,14 @@ char DHSD_SPI::Write(unsigned char * InBuffer, unsigned int InLength){
   while(InLength--){
 
   #ifdef debug
- //   Serial.print("Write 0x");  
- //   Serial.println(InBuffer[0],HEX);
+    Serial.print("Write 0x");  
+    Serial.println(InBuffer[0],HEX);
   #endif
     LastByte = SPI.transfer(InBuffer[0]);
   
     #ifdef debug
- //   Serial.print("SPI Write LastByte = 0x");
-  //  Serial.println(LastByte,HEX);
+    Serial.print("SPI Write LastByte = 0x");
+    Serial.println(LastByte,HEX);
     #endif
     
     InBuffer++;

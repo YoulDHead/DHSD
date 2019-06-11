@@ -1,5 +1,11 @@
 #include "DHSD_VS1053.h"
 
+DHSD_VS1053::DHSD_VS1053(){
+
+  ReadyForData=false;
+  
+};
+
 unsigned int DHSD_VS1053::ControlRead(unsigned char InAddress){
 
   unsigned int Data=0;
@@ -14,9 +20,11 @@ unsigned int DHSD_VS1053::ControlRead(unsigned char InAddress){
   Data<<=8;
   Data |= DataRead();
 
+  #ifdef debug
   Serial.print("Control read - 0x");
   Serial.println(Data,HEX);
-
+  #endif
+  
   XSPI.CSHigh();
 
   return Data;
@@ -41,8 +49,10 @@ unsigned char DHSD_VS1053::DataRead(){
   unsigned char Data=0;
  
   Data = XSPI.Read();
+  #ifdef debug
   Serial.print("Dataread - 0x");
   Serial.println(Data,HEX);
+  #endif
   return Data;
   
 }
@@ -50,9 +60,9 @@ unsigned char DHSD_VS1053::DataRead(){
 
 void DHSD_VS1053::DataWrite(unsigned char * InData, unsigned int InLength){
 
-  
+  XSPI.DCSLow();
   XSPI.Write(InData,InLength);  
-  
+  XSPI.DCSHigh();
   
 };
 
@@ -110,24 +120,32 @@ unsigned char DHSD_VS1053::Reset(){
 
   ControlWrite(DHSD_VS1053_REG_CLOCKF, 0x6000);
 
-  SetVolume(40);
+  SetVolume(0);
 
   char reg=ControlRead(DHSD_VS1053_REG_MODE);
-
+  
+  #ifdef debug
   Serial.print("Mode = 0x"); Serial.println(reg, HEX);
-
+  #endif
+  
   reg=ControlRead(DHSD_VS1053_REG_STATUS);
 
+  #ifdef debug
   Serial.print("Stat = 0x"); Serial.println(reg, HEX);
-
-  reg=ControlRead(DHSD_VS1053_REG_CLOCKF);
+  #endif
   
-  Serial.print("ClkF = 0x"); Serial.println(reg, HEX);
+  reg=ControlRead(DHSD_VS1053_REG_CLOCKF);
 
+  #ifdef debug
+  Serial.print("ClkF = 0x"); Serial.println(reg, HEX);
+  #endif
+  
   reg=ControlRead(DHSD_VS1053_REG_VOLUME);
   
+  #ifdef debug
   Serial.print("Vol. = 0x"); Serial.println(reg, HEX);
-
+  #endif
+  
   return (ControlRead(DHSD_VS1053_REG_STATUS)>>4)&0x0f;
   
 }
@@ -144,7 +162,10 @@ void DHSD_VS1053::SetVolume(char InVolume){
 
 };
 
-bool DHSD_VS1053::Init(DHSD_SPI * InSPI, int InXRST){
+bool DHSD_VS1053::Init(DHSD_SPI * InSPI, int InXRST, int InDREQ){
+
+  DREQ=InDREQ;
+  pinMode(DREQ,INPUT);
     
   XSPI = *InSPI;
 
@@ -157,11 +178,62 @@ bool DHSD_VS1053::Init(DHSD_SPI * InSPI, int InXRST){
   XSPI.DCSHigh();
   
   unsigned char ver = Reset();
+  
+  #ifdef debug
   Serial.print("Version - ");
   Serial.println(ver);
-  SineTest();
+  #endif
   
-   
+  SineTest();
+    
+};
+
+bool DHSD_VS1053::StartPlayer(){
+
+  ControlWrite(DHSD_VS1053_REG_MODE,DHSD_VS1053_MODE_SM_LINE1|DHSD_VS1053_MODE_SM_SDINEW);
+  ControlWrite(DHSD_VS1053_REG_WRAMADDR,0x1e29);
+  ControlWrite(DHSD_VS1053_REG_WRAM,0);
+  ControlWrite(DHSD_VS1053_REG_DECODETIME,0x00);
+  ControlWrite(DHSD_VS1053_REG_DECODETIME,0x00);
+
+  ReadyForData=true;
   
 };
 
+bool DHSD_VS1053::FeedData(unsigned char * InSoundData, unsigned long TailBytes){
+  int Chunks = 16;
+  int LastChunkSize=32;
+
+  if(TailBytes!=512){
+    Chunks = TailBytes/32;
+    
+    LastChunkSize = TailBytes - Chunks*32;
+  
+  }
+  
+  for(int a=0;a<Chunks;a++){
+
+    while(!CheckVSReadyToEat());
+    if(a==(Chunks-1))
+    {
+      DataWrite(InSoundData+a*32,LastChunkSize);
+    }else{
+      DataWrite(InSoundData+a*32,32);
+    }
+    
+  }
+
+  ReadyForData=true;
+  
+};
+
+bool DHSD_VS1053::ReadyForFeed(){
+
+  return ReadyForData;
+};
+
+bool DHSD_VS1053::CheckVSReadyToEat(){
+  
+  return digitalRead(DREQ);
+  
+};

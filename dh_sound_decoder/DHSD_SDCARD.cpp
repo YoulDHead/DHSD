@@ -142,11 +142,13 @@ bool DHSD_SDCARD::CMD1(){
       #ifdef debug
         Serial.println("SDCARD-CMD1 Card type 1");
       #endif
+      delete [] buf;
       return true;      
     }
     loops++;
   }while(loops<100);
-
+  
+  delete [] buf;
   return false;
 
 }
@@ -175,6 +177,7 @@ char DHSD_SDCARD::CMD8(){
       #ifdef debug
         Serial.println("SDCARD-CMD8 Card type 1");
       #endif
+      delete [] buf;
       return 1;      
     }
 
@@ -182,6 +185,7 @@ char DHSD_SDCARD::CMD8(){
       #ifdef debug
         Serial.println("SDCARD-CMD8 Card type 2");
       #endif
+      delete [] buf;
       return 2;      
       
     }
@@ -190,23 +194,24 @@ char DHSD_SDCARD::CMD8(){
 
   }while(loops<10);
     
-  
+  delete [] buf;
 };
 
 bool DHSD_SDCARD::CMD17(unsigned long InBlockNumber){
 
-  //#ifdef debug
+  #ifdef debug
   Serial.println("SDCARD-CMD17");
-  //#endif
+  #endif
   
   unsigned char inbuf=0xff;
   
   unsigned char *  buf = new unsigned char [6] {0x51,((InBlockNumber>>24)&0xff),((InBlockNumber>>16)&0xff),((InBlockNumber>>8)&0xff),((InBlockNumber)&0xff),0x00};
 
+  #ifdef debug
   for(int a=0;a<6;a++){
     Serial.println(buf[a],HEX);  
   }
-
+  #endif
   CSPI.Write(buf,6); 
 
   unsigned char state=0;
@@ -221,12 +226,14 @@ bool DHSD_SDCARD::CMD17(unsigned long InBlockNumber){
       #ifdef debug
         Serial.println("SDCARD-CMD17 Ok");
       #endif
+      delete [] buf;
       return true;      
     }
     
     loops++;
   }while(loops<100);
 
+  delete [] buf;
   return false;
 
 };
@@ -244,6 +251,7 @@ char DHSD_SDCARD::CMD41(){
   // shift one byte
   CSPI.Write(&inbuf,1);  
 
+  delete [] buf;
   return  CSPI.Write(&inbuf,1);  
 ;    
 };
@@ -276,6 +284,7 @@ bool DHSD_SDCARD::CMD55(){
       #ifdef debug
         Serial.println("SDCARD-CMD55 Ok");
       #endif
+      delete [] buf;
       return true;      
     }
     loops++;
@@ -283,7 +292,7 @@ bool DHSD_SDCARD::CMD55(){
       #ifdef debug
         Serial.println("SDCARD-CMD55 failed");
       #endif
-
+  delete [] buf;
   return false;    
        
 }
@@ -309,11 +318,13 @@ bool DHSD_SDCARD::CMD59(){
       #ifdef debug
         Serial.println("SDCARD-CMD59 Ok");
       #endif
+      delete [] buf;
       return true;      
     }
     loops++;
   }while(loops<100);
-
+  
+  delete [] buf;
   return false;      
   
 };
@@ -332,39 +343,43 @@ bool DHSD_SDCARD::Read(unsigned long InBlockNumber,unsigned char * OutBlock){
   
   bool result=false;
   if(CMD17(InBlockNumber)){
-    while (CSPI.Write(&inbuf,1)!=0xFE); //ожидание метки о начале пакета данных
-      Serial.print ("Read data from sector ");
-      Serial.println(InBlockNumber,DEC);
+    while (CSPI.Write(&inbuf,1)!=0xFE); // wait for data mark
+  
+  //    Serial.print ("Read data from sector ");
+    //  Serial.println(InBlockNumber,DEC);
+  
       char ByteCounter=0;
       for (int i=0; i<512; i++){
-        OutBlock[i]=CSPI.Write(&inbuf,1); //считываем блок данных в массив block с размером 512 элементов типа byte.
-
+        OutBlock[i]=CSPI.Write(&inbuf,1); // get data byte by byte
         
+    
         if(OutBlock[i]<=0x0f){
           Serial.print("0x0");
         }else{
           Serial.print("0x");
-          }
+        }
         Serial.print(OutBlock[i],HEX);
         Serial.print(" ");
         if(ByteCounter==15){
-          Serial.println();
+        Serial.println();
           ByteCounter=0;  
         }else{
           ByteCounter++;  
         }
         
       }
-       //сдвинем еще на два байта, это CRC
+      
+      //Serial.println();
+      //Serial.println();
+      //Serial.println();
+      //get CRC
       CSPI.Write(&inbuf,1); 
       CSPI.Write(&inbuf,1);
-      Serial.println();
-      Serial.println();
-      Serial.println();
       result=true;
        
   };
   CSPI.CSHigh();
+  
   return result;
 };
 
