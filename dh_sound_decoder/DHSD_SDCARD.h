@@ -2,7 +2,7 @@
 #define DHSD_SDCARD_GUARD
 
 #include "DHSD_SPI.h"
-#define debug
+//#define debug
 
 class DHSD_SDCARD{
   public:

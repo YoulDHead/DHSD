@@ -352,7 +352,7 @@ bool DHSD_SDCARD::Read(unsigned long InBlockNumber,unsigned char * OutBlock){
       for (int i=0; i<512; i++){
         OutBlock[i]=CSPI.Write(&inbuf,1); // get data byte by byte
         
-    
+      #ifdef debug
         if(OutBlock[i]<=0x0f){
           Serial.print("0x0");
         }else{
@@ -366,7 +366,7 @@ bool DHSD_SDCARD::Read(unsigned long InBlockNumber,unsigned char * OutBlock){
         }else{
           ByteCounter++;  
         }
-        
+      #endif  
       }
       
       //Serial.println();

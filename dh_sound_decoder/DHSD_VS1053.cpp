@@ -120,7 +120,7 @@ unsigned char DHSD_VS1053::Reset(){
 
   ControlWrite(DHSD_VS1053_REG_CLOCKF, 0x6000);
 
-  SetVolume(0);
+  SetVolume(100);
 
   char reg=ControlRead(DHSD_VS1053_REG_MODE);
   
@@ -145,7 +145,7 @@ unsigned char DHSD_VS1053::Reset(){
   #ifdef debug
   Serial.print("Vol. = 0x"); Serial.println(reg, HEX);
   #endif
-  
+  SetVolume(0);
   return (ControlRead(DHSD_VS1053_REG_STATUS)>>4)&0x0f;
   
 }
