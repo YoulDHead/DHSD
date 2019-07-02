@@ -1,0 +1,18 @@
+#ifndef DHSD_FILEREADER_GUARD
+#define DHSD_FILREADER_GUARD
+#include "DHSD_DHFS.h"
+
+
+class DHSD_FileReader {
+
+  public:
+    void Init(DHSD_DHFS * FS, byte InFileNum);
+
+  private:
+    unsigned long Sectors;
+    unsigned long TailBytes;
+    DHSD_DHFS LFS;
+    byte FileNum;
+
+};
+

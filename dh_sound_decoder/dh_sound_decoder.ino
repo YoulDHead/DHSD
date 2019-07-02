@@ -1,6 +1,7 @@
 #include "DHSD_SDCARD.h"
 #include "DHSD_VS1053.h"
 #include "DHSD_DHFS.h"
+#include "DHSD_FileReader.h"
 
 //######################################## MAIN DEFS ###################################
 #define debug
@@ -33,7 +34,10 @@ unsigned char  SynteticWaveHeader [44] = {
 
 unsigned char * FeedBuffer1;
 unsigned char * FeedBuffer2;
-bool FeedBufferSwitch;
+
+bool BufSelector;
+bool LockBuf1;
+bool LockBuf2;
 
 unsigned char * FirstBuffer;
 unsigned char * SecondBuffer;
@@ -45,6 +49,14 @@ bool SynteticHeader;
 DHSD_DHFS FS;
 
 DHSD_VS1053 VS;
+
+DHSD_FileReader FR1;
+
+
+
+
+
+
 //######################################## MAIN CODE ###################################
 
 void SetupSPI() {
@@ -54,8 +66,6 @@ void SetupSPI() {
   ////  VS_CSPI.Init(vs_command_cs);
 
 };
-
-
 
 
 void setup() {
@@ -87,7 +97,7 @@ void setup() {
   FeedBuffer1 = new unsigned char [512];
   FeedBuffer2 = new unsigned char [512];
 
-  FeedBufferSwitch = false;
+  //  FeedBufferSwitch = false;
 
   FirstBuffer = new unsigned char [512];
   SecondBuffer = new unsigned char [512];
@@ -95,12 +105,44 @@ void setup() {
 
   SynteticHeader = true;
 
+  BufSelector = false;
+  LockBuf1 = false;
+  LockBuf2 = false;
+
+
 };
+
+void FeedData() {
+
+
+  if (!BufSelector) {
+    LockBuf1 = true;
+    LockBuf2 = false;
+    BufSelector = true;
+    // feed buffer
+    VS.FeedData(FeedBuffer1, 512);
+
+  } else {
+    BufSelector = false;
+    LockBuf2 = true;
+    LockBuf1 = false;
+    VS.FeedData(FeedBuffer2, 512);
+  }
+
+}
+
+//bool ReadDataFromFile(byte FileNumber, byte * bufferOut)
 
 void loop() {
 
   // main sound loop
   bool MSLoop = true;
+
+
+  FR1.Init(&FS, 1);
+  delay(10000);
+
+
 
   char FirstChannelFile = 0;
   bool FirstChannelEnabled = true;
@@ -133,11 +175,11 @@ void loop() {
       Serial.println(FirstSectorsProcessed, DEC);
       Serial.print("FirstSectors=");
       Serial.println(FirstSectors, DEC);
-  
+
       FirstChannelEnabled = FS.ReadSectorFromFile(FirstChannelFile, FirstSectorsProcessed, FirstBuffer);
       if (FirstSectorsProcessed == (FirstSectors)) {
         FirstChannelEnabled = false;
-        //SecondChannelEnabled=true;*/
+        //SecondChannelEnabled=true;
       }
 
       if (FirstSectorsProcessed == 0)    {
@@ -153,7 +195,7 @@ void loop() {
 
 
       }
-      
+
       FirstSectorsProcessed++;
 
     }
@@ -166,11 +208,11 @@ void loop() {
       Serial.println(SecondSectorsProcessed, DEC);
       Serial.print("SecondSectors=");
       Serial.println(SecondSectors, DEC);
-    
+
       SecondChannelEnabled = FS.ReadSectorFromFile(SecondChannelFile, SecondSectorsProcessed, SecondBuffer);
-      if (SecondSectorsProcessed == (SecondSectors-1)) {
+      if (SecondSectorsProcessed == (SecondSectors - 1)) {
         //SecondChannelEnabled = false;
-        SecondSectorsProcessed=1;
+        SecondSectorsProcessed = 1;
       }
 
       if (SecondSectorsProcessed == 0)    {
@@ -190,16 +232,15 @@ void loop() {
 
     }
 
-    if(SynteticHeader){
+    if (SynteticHeader) {
       // put syntetic wave header into FeedBuffer;
       memcpy(ResultBuffer, &SynteticWaveHeader, 44);
-      SynteticHeader=false;
+      SynteticHeader = false;
     }
 
     // process second logical channel
 
-    // feed buffer
-    VS.FeedData(ResultBuffer, 512);
-
+    // Feed prepared data
+    FeedData();
   }
 };
