@@ -139,8 +139,50 @@ void loop() {
   bool MSLoop = true;
 
 
-  FR1.Init(&FS, 1);
-  delay(10000);
+  FR1.Init(&FS, 0, true);
+// ReadNext(byte * BufferOut,int InSize, int * OutSize);
+
+  Serial.println("FirstRead");
+  
+  int OutSize=0;
+  if(FR1.ReadNext(FirstBuffer,256,&OutSize)){
+    Serial.print("OutSize=");
+    Serial.println(OutSize);    
+
+    byte b=0;
+    for(int a=0;a<OutSize;a++){
+      Serial.print(" 0x");
+      Serial.print(FirstBuffer[a],HEX);
+      b++;
+      if(b==16){
+        Serial.println();
+        b=0;
+      }
+      
+    }
+  }
+
+  Serial.println();
+  Serial.println("SecondRead");
+  if(FR1.ReadNext(FirstBuffer,512,&OutSize)){
+    Serial.print("OutSize=");
+    Serial.println(OutSize);   
+
+     byte b=0;
+    for(int a=0;a<OutSize;a++){
+      Serial.print(" 0x");
+      Serial.print(FirstBuffer[a],HEX);
+      b++;
+      if(b==16){
+        Serial.println();
+        b=0;
+      }
+      
+    }
+  }
+  Serial.println();
+  
+  delay(100000);
 
 
 

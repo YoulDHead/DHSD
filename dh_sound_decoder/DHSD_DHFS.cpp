@@ -45,10 +45,5 @@ bool DHSD_DHFS::ReadSectorFromFile(unsigned long InFileNum, unsigned long InSect
 
 
 };
-/*memcpy(&FileNum,reinterpret_cast<unsigned long *>(InData+pos),sizeof(unsigned long));
-  memcpy(&TFile.FirstSector,reinterpret_cast<unsigned long *>(InData+pos),sizeof(unsigned long));
-  memcpy(&TFile.NumberOfSectors,reinterpret_cast<unsigned long *>(InData+pos),sizeof(unsigned long));
-  memcpy(&TFile.TailBytes,reinterpret_cast<unsigned long *>(InData+pos),sizeof(unsigned long));
-*/
 
 

@@ -6,7 +6,7 @@
 class DHSD_FileReader {
 
   public:
-    void Init(DHSD_DHFS * FS, byte InFileNum);
+    void Init(DHSD_DHFS * FS, byte InFileNum, bool InSkipHeader);
     bool ReadNext(byte * BufferOut,int InSize, int * OutSize);
     
 
@@ -19,6 +19,7 @@ class DHSD_FileReader {
 
     byte ReadBuffer[512];
     int CurrentPos;
+    bool SkipHeader;
 
 };
 
