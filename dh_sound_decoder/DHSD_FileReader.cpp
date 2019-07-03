@@ -84,7 +84,7 @@ bool DHSD_FileReader::ReadNext(byte * BufferOut, int InSize, int * OutSize) {
     if (CurrentSector < Sectors) {
       CurrentSector++;
       LFS.ReadSectorFromFile(FileNum, CurrentSector, ReadBuffer);
-
+/*
       byte b = 0;
       for (int a = 0; a < 512; a++) {
         Serial.print(" 0x");
@@ -97,7 +97,7 @@ bool DHSD_FileReader::ReadNext(byte * BufferOut, int InSize, int * OutSize) {
 
       }
       Serial.println();
-
+*/
       memcpy(BufferOut + *OutSize, ReadBuffer, (InSize - *OutSize));
       CurrentPos = (InSize - *OutSize);
       *OutSize += CurrentPos;
